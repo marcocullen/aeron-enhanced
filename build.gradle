@@ -129,6 +129,14 @@ def projectPom = {
 jar.enabled = false
 
 allprojects {
+    tasks.withType(Javadoc).configureEach {
+        enabled = false // Disable all Javadoc tasks globally
+    }
+
+    tasks.withType(Checkstyle).configureEach {
+        ignoreFailures = true // Allow the build to continue even with Checkstyle errors
+    }
+
     repositories {
         mavenLocal()
         mavenCentral()

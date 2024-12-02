@@ -33,6 +33,7 @@ import org.agrona.collections.MutableLong;
 import org.agrona.concurrent.UnsafeBuffer;
 import org.agrona.concurrent.YieldingIdleStrategy;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.extension.TestWatcher;
@@ -360,10 +361,8 @@ class ArchiveSystemTest
         // Wait for replays to be active
         Tests.await(() -> archive.context().replaySessionCounter().get() == 2);
 
-        System.out.println("Active replay sessions: " +
-                archive.context().replaySessionCounter().id());
-
         final long stopReplaysCorrelationId = client.nextCorrelationId();
+
         archiveProxy.stopSlowReplays(
                 recordingId,
                 stopPosition + 1,
@@ -372,7 +371,8 @@ class ArchiveSystemTest
 
         System.out.printf("Stop replays correlation id: %d%n", stopReplaysCorrelationId);
 
-        Tests.await(() -> ArchiveTests.awaitOk(controlResponse, stopReplaysCorrelationId) == 2);
+        long closedReplays = ArchiveTests.awaitOk(controlResponse, stopReplaysCorrelationId);
+        Assertions.assertEquals(2, closedReplays);
     }
 
         private void preSendChecks(

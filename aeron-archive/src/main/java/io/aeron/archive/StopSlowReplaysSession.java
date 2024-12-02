@@ -5,10 +5,11 @@ import org.agrona.collections.Long2ObjectHashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-class StopSlowReplaysSession implements Session {
+class StopSlowReplaysSession implements Session
+{
     private final long correlationId;
+    private final Long2ObjectHashMap<ReplaySession> replaySessions;
     private final ControlSession controlSession;
-    private final Iterator<Map.Entry<Long, ReplaySession>> replayIterator;
     private final long recordingId;
     private final long stopPosition;
     private boolean isDone = false;
@@ -18,14 +19,16 @@ class StopSlowReplaysSession implements Session {
             final Long2ObjectHashMap<ReplaySession> replaySessions,
             final ControlSession controlSession,
             final long recordingId,
-            final long stopPosition) {
+            final long stopPosition)
+    {
         this.correlationId = correlationId;
+        this.replaySessions = replaySessions;
         this.controlSession = controlSession;
-        this.replayIterator = replaySessions.entrySet().iterator();
         this.recordingId = recordingId;
         this.stopPosition = stopPosition;
     }
 
+    @Override
     public int doWork()
     {
         int workCount = 0;
@@ -37,11 +40,14 @@ class StopSlowReplaysSession implements Session {
                 System.out.printf("Starting stop slow replay check for recordingId: %d currentPosition: %d%n",
                         recordingId, stopPosition);
 
-                while (replayIterator.hasNext())
+                final Iterator<ReplaySession> iterator = replaySessions.values().iterator();
+                int stoppedReplays = 0;
+
+                while (iterator.hasNext())
                 {
-                    final ReplaySession session = replayIterator.next().getValue();
-                    System.out.printf("Checking replay session %d recordingId: %d position: %d%n",
-                            session.sessionId(), session.recordingId(), session.getReplayPosition());
+                    final ReplaySession session = iterator.next();
+                    System.out.printf("Checking replay session %d recordingId: %d position: %d against stopPosition %d%n",
+                            session.sessionId(), session.recordingId(), session.getReplayPosition(), stopPosition);
 
                     if (session.recordingId() == recordingId)
                     {
@@ -49,15 +55,15 @@ class StopSlowReplaysSession implements Session {
                         if (replayPosition < stopPosition)
                         {
                             System.out.printf("Stopping slow replay at position: %d%n", replayPosition);
-                            controlSession.onStopReplay(correlationId, session.sessionId());
-                            workCount++;
+                            session.abort(); // Stop the replay session
+                            stoppedReplays++;
                         }
                     }
                 }
 
                 isDone = true;
-                System.out.println("Found " + workCount + " replays to stop");
-                controlSession.sendOkResponse(correlationId, workCount);
+                System.out.println("Found " + stoppedReplays + " replays to stop");
+                controlSession.sendOkResponse(correlationId, stoppedReplays);
             }
             catch (final Exception ex)
             {
@@ -70,21 +76,26 @@ class StopSlowReplaysSession implements Session {
         return workCount;
     }
 
+    @Override
+    public long sessionId() {
+        return controlSession.sessionId();
+    }
 
+    @Override
     public void abort()
     {
         isDone = true;
     }
 
+    @Override
     public boolean isDone()
     {
         return isDone;
     }
 
-    public long sessionId()
+    @Override
+    public void close()
     {
-        return correlationId;
+        // Perform any necessary cleanup
     }
-
-    public void close() {}
 }

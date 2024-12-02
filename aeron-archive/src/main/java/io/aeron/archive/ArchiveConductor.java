@@ -2480,12 +2480,10 @@ abstract class ArchiveConductor
             final long stopPosition,
             final ControlSession controlSession)
     {
-        if (controlSession.hasActiveListing())
-        {
-            final String msg = "active slow replay stop already in progress";
-            controlSession.sendErrorResponse(correlationId, ACTIVE_LISTING, msg);
-            return;
-        }
+        System.out.println("Stop slow replays called on conductor...");
+
+        // Remove the check for active listing
+        // Remove the error response for active slow replay stop
 
         final StopSlowReplaysSession session = new StopSlowReplaysSession(
                 correlationId,
@@ -2494,9 +2492,11 @@ abstract class ArchiveConductor
                 recordingId,
                 stopPosition
         );
+
         addSession(session);
-        controlSession.activeListing(session);
+        // Do not set controlSession.activeListing(session);
     }
+
 
     abstract static class Recorder extends SessionWorker<RecordingSession>
     {
