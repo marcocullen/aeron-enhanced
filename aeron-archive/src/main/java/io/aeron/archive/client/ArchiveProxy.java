@@ -68,6 +68,7 @@ public final class ArchiveProxy
     private BoundedReplayRequestEncoder boundedReplayRequest;
     private StopAllReplaysRequestEncoder stopAllReplaysRequest;
     private ReplicateRequest2Encoder replicateRequest;
+    private StopSlowReplaysRequestEncoder stopSlowReplaysRequest;
     private StopReplicationRequestEncoder stopReplicationRequest;
     private StartPositionRequestEncoder startPositionRequest;
     private DetachSegmentsRequestEncoder detachSegmentsRequest;
@@ -122,6 +123,7 @@ public final class ArchiveProxy
         this.connectTimeoutNs = connectTimeoutNs;
         this.retryAttempts = retryAttempts;
         this.credentialsSupplier = credentialsSupplier;
+        this.stopSlowReplaysRequest = new StopSlowReplaysRequestEncoder();
     }
 
     /**
@@ -1656,5 +1658,21 @@ public final class ArchiveProxy
             .srcResponseChannel(srcResponseChannel);
 
         return offer(replicateRequest.encodedLength());
+    }
+
+    public boolean stopSlowReplays(
+            final long recordingId,
+            final long stopPosition,
+            final long correlationId,
+            final long controlSessionId)
+    {
+        stopSlowReplaysRequest
+                .wrapAndApplyHeader(buffer, 0, messageHeader)
+                .controlSessionId(controlSessionId)
+                .correlationId(correlationId)
+                .recordingId(recordingId)
+                .stopPosition(stopPosition);
+
+        return offer(stopSlowReplaysRequest.encodedLength());
     }
 }

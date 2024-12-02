@@ -26,6 +26,7 @@ class ControlRequestDecoders
     final StartRecordingRequest2Decoder startRecordingRequest2 = new StartRecordingRequest2Decoder();
     final StopRecordingRequestDecoder stopRecordingRequest = new StopRecordingRequestDecoder();
     final ReplayRequestDecoder replayRequest = new ReplayRequestDecoder();
+    final StopSlowReplaysRequestDecoder stopSlowReplaysRequest = new StopSlowReplaysRequestDecoder();
     final StopReplayRequestDecoder stopReplayRequest = new StopReplayRequestDecoder();
     final ListRecordingsRequestDecoder listRecordingsRequest = new ListRecordingsRequestDecoder();
     final ListRecordingsForUriRequestDecoder listRecordingsForUriRequest = new ListRecordingsForUriRequestDecoder();

@@ -74,6 +74,11 @@ class ReplaySession implements Session, AutoCloseable
     private final long sessionId;
     private final long recordingId;
     private final long startPosition;
+
+    public long getReplayPosition() {
+        return replayPosition;
+    }
+
     private long replayPosition;
     private long stopPosition;
     private long replayLimit;
