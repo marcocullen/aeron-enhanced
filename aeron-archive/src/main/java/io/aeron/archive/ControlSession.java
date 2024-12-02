@@ -411,6 +411,21 @@ final class ControlSession implements Session
         }
     }
 
+    void onStopSlowReplays(
+            final long correlationId,
+            final long recordingId,
+            final long currentPosition)
+    {
+        if (State.ACTIVE == state)
+        {
+            conductor.stopSlowReplays(
+                    correlationId,
+                    recordingId,
+                    currentPosition,
+                    this);
+        }
+    }
+
     void onExtendRecording(
         final long correlationId,
         final long recordingId,

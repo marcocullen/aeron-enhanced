@@ -631,4 +631,13 @@
         <field name="recordingId"          id="3" type="int64"/>
     </sbe:message>
 
+    <sbe:message name="StopSlowReplaysRequest"
+                 id="703"
+                 description="Stop active Replay Sessions that are behind the given position.">
+        <field name="controlSessionId"      id="1" type="int64"/>
+        <field name="correlationId"         id="2" type="int64"/>
+        <field name="recordingId"           id="3" type="int64"/>
+        <field name="stopPosition"          id="4" type="int64"/>
+    </sbe:message>
+
 </sbe:messageSchema>

@@ -17,6 +17,7 @@ package io.aeron.archive;
 
 import io.aeron.*;
 import io.aeron.archive.client.*;
+import io.aeron.archive.codecs.ControlResponseCode;
 import io.aeron.archive.codecs.SourceLocation;
 import io.aeron.driver.MediaDriver;
 import io.aeron.driver.ThreadingMode;
@@ -28,6 +29,7 @@ import io.aeron.test.*;
 import io.aeron.test.driver.TestMediaDriver;
 import org.agrona.*;
 import org.agrona.collections.MutableBoolean;
+import org.agrona.collections.MutableLong;
 import org.agrona.concurrent.UnsafeBuffer;
 import org.agrona.concurrent.YieldingIdleStrategy;
 import org.junit.jupiter.api.AfterEach;
@@ -296,7 +298,84 @@ class ArchiveSystemTest
             recordedPublication.maxPayloadLength());
     }
 
-    private void preSendChecks(
+    @ParameterizedTest
+    @MethodSource("threadingModes")
+    @InterruptAfter(10)
+    void shouldStopReplaysBeyondPosition(final ThreadingMode threadingMode, final ArchiveThreadingMode archiveThreadingMode) throws InterruptedException {
+        before(threadingMode, archiveThreadingMode);
+
+        final String controlChannel = archive.context().localControlChannel();
+        final int controlStreamId = archive.context().localControlStreamId();
+
+        final Publication controlPublication = client.addPublication(controlChannel, controlStreamId);
+        final ArchiveProxy archiveProxy = new ArchiveProxy(controlPublication);
+
+        final Subscription recordingEvents = client.addSubscription(
+                archive.context().recordingEventsChannel(),
+                archive.context().recordingEventsStreamId());
+
+        prePublicationActionsAndVerifications(archiveProxy, controlPublication, recordingEvents);
+
+        final ExclusivePublication recordedPublication =
+                client.addExclusivePublication(publishUri, PUBLISH_STREAM_ID);
+
+        final int termBufferLength = recordedPublication.termBufferLength();
+        final long startPosition = recordedPublication.position();
+
+        preSendChecks(archiveProxy, recordingEvents, recordedPublication.sessionId(),
+                termBufferLength, startPosition);
+
+        final CountDownLatch recordingComplete = new CountDownLatch(1);
+        prepMessagesAndListener(recordingEvents, recordingComplete);
+        publishDataToBeRecorded(recordedPublication);
+        await(recordingComplete);
+
+        System.out.println("Recording completed at position: " + stopPosition);
+
+        // Start replays with length = totalRecordingLength t]o keep them running
+        final long replayCorrelationId1 = client.nextCorrelationId();
+        archiveProxy.replay(
+                recordingId,
+                startPosition,
+                totalRecordingLength,      // Use full length to keep replay running
+                REPLAY_URI,
+                1001,
+                replayCorrelationId1,
+                controlSessionId);
+
+        final long replayCorrelationId2 = client.nextCorrelationId();
+        archiveProxy.replay(
+                recordingId,
+                startPosition,
+                totalRecordingLength,      // Use full length to keep replay running
+                REPLAY_URI,
+                1002,
+                replayCorrelationId2,
+                controlSessionId);
+
+        ArchiveTests.awaitOk(controlResponse,  replayCorrelationId1);
+        ArchiveTests.awaitOk(controlResponse, replayCorrelationId2);
+
+
+        // Wait for replays to be active
+        Tests.await(() -> archive.context().replaySessionCounter().get() == 2);
+
+        System.out.println("Active replay sessions: " +
+                archive.context().replaySessionCounter().id());
+
+        final long stopReplaysCorrelationId = client.nextCorrelationId();
+        archiveProxy.stopSlowReplays(
+                recordingId,
+                stopPosition + 1,
+                stopReplaysCorrelationId,
+                controlSessionId);
+
+        System.out.printf("Stop replays correlation id: %d%n", stopReplaysCorrelationId);
+
+        Tests.await(() -> ArchiveTests.awaitOk(controlResponse, stopReplaysCorrelationId) == 2);
+    }
+
+        private void preSendChecks(
         final ArchiveProxy archiveProxy,
         final Subscription recordingEvents,
         final int sessionId,

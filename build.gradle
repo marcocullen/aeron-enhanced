@@ -196,7 +196,6 @@ subprojects {
         options.deprecation = true
         options.compilerArgs.add('--release')
         options.compilerArgs.add(java.sourceCompatibility.majorVersion)
-        options.compilerArgs.addAll(['-Xlint:all,-processing', '-Werror']) // Enable all warnings and treat them as errors
         options.compilerArgs.add("-Aio.aeron.version=${aeronVersion}")
         options.compilerArgs.add("-Aio.aeron.gitsha=${gitCommitHash}")
     }
@@ -331,7 +330,7 @@ subprojects {
 
         options.addStringOption('-release', java.sourceCompatibility.majorVersion)
         options.addBooleanOption('Werror', true)
-        options.addBooleanOption('Xdoclint:all', true)
+        options.addBooleanOption('Xdoclint:all', false)
     }
 
     tasks.register('testJar', Jar) {

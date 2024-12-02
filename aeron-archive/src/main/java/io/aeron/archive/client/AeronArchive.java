@@ -1178,6 +1178,34 @@ public final class AeronArchive implements AutoCloseable
     }
 
     /**
+     * Stop all replay sessions for a given recording id that are not in the current position segment.
+     *
+     * @param recordingId to stop replay for or {@link Aeron#NULL_VALUE} for all replays.
+     */
+    public long stopSlowReplays(final long recordingId, final long stopPosition)
+    {
+        lock.lock();
+        try
+        {
+            ensureOpen();
+            ensureNotReentrant();
+
+            lastCorrelationId = aeron.nextCorrelationId();
+
+            if (!archiveProxy.stopSlowReplays(recordingId, stopPosition, lastCorrelationId, controlSessionId))
+            {
+                throw new ArchiveException("failed to send stop slow replays request");
+            }
+
+            return pollForResponse(lastCorrelationId);
+        }
+        finally
+        {
+            lock.unlock();
+        }
+    }
+
+    /**
      * Stop all replay sessions for a given recording id or all replays in general.
      *
      * @param recordingId to stop replay for or {@link Aeron#NULL_VALUE} for all replays.

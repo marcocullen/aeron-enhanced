@@ -204,6 +204,36 @@ class ControlSessionDemuxerTest
         verify(mockConductor).generateReplayToken(mockSession, recordingId);
     }
 
+    @Test
+    void shouldHandleStopSlowReplaysRequest()
+    {
+        final ControlSessionDemuxer controlSessionDemuxer = new ControlSessionDemuxer(
+                new ControlRequestDecoders(), mockImage, mockConductor, mockAuthorisationService);
+        setupControlSession(controlSessionDemuxer, CONTROL_SESSION_ID);
+
+        final ExpandableArrayBuffer buffer = new ExpandableArrayBuffer();
+        final MessageHeaderEncoder headerEncoder = new MessageHeaderEncoder();
+        final StopSlowReplaysRequestEncoder stopSlowReplaysRequest = new StopSlowReplaysRequestEncoder();
+
+        stopSlowReplaysRequest.wrapAndApplyHeader(buffer, 0, headerEncoder);
+
+        stopSlowReplaysRequest
+                .controlSessionId(CONTROL_SESSION_ID)
+                .correlationId(9382475L)
+                .recordingId(9827345897L)
+                .stopPosition(982374L);
+
+        controlSessionDemuxer.onFragment(buffer, 0, stopSlowReplaysRequest.encodedLength(), mockHeader);
+
+        final StopSlowReplaysRequestDecoder expected = new StopSlowReplaysRequestDecoder()
+                .wrapAndApplyHeader(buffer, 0, new MessageHeaderDecoder());
+
+        verify(mockSession).onStopSlowReplays(
+                expected.correlationId(),
+                expected.recordingId(),
+                expected.stopPosition());
+    }
+
     private void setupControlSession(final ControlSessionDemuxer controlSessionDemuxer, final long controlSessionId)
     {
         final MutableDirectBuffer buffer = new ExpandableArrayBuffer();
