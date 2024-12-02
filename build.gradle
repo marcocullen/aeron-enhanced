@@ -140,6 +140,14 @@ allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/${System.getenv('GITHUB_REPOSITORY') ?: "marcocullen/aeron-enhanced"}")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
     }
 
     configurations.configureEach {
@@ -361,6 +369,10 @@ project(':aeron-annotations') {
     apply plugin: 'signing'
     apply plugin: 'biz.aQute.bnd.builder'
 
+    signing {
+        required = false
+    }
+
     jar {
         bundle {
             bnd """
@@ -395,20 +407,18 @@ project(':aeron-annotations') {
 
         repositories {
             maven {
-                url(!isReleaseVersion ? snapshotsRepoUrl : releasesRepoUrl)
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/${System.getenv('GITHUB_REPOSITORY') ?: "marcocullen/aeron-enhanced"}")
                 credentials {
-                    username = ossrhUsername
-                    password = ossrhPassword
+                    username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                    password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
                 }
             }
         }
     }
 
     signing {
-        if (signingKey != null) {
-            useInMemoryPgpKeys(signingKey, signingPassword)
-        }
-        sign publishing.publications.aeronAnnotations
+        required = false
     }
 }
 
@@ -462,20 +472,18 @@ project(':aeron-client') {
 
         repositories {
             maven {
-                url(!isReleaseVersion ? snapshotsRepoUrl : releasesRepoUrl)
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/${System.getenv('GITHUB_REPOSITORY') ?: "marcocullen/aeron-enhanced"}")
                 credentials {
-                    username = ossrhUsername
-                    password = ossrhPassword
+                    username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                    password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
                 }
             }
         }
     }
 
     signing {
-        if (signingKey != null) {
-            useInMemoryPgpKeys(signingKey, signingPassword)
-        }
-        sign publishing.publications.aeronClient
+        required = false
     }
 
     def configInfoFile = "${layout.buildDirectory.get()}/generated/sources/headers/java/main/config-info.dat"
@@ -573,20 +581,18 @@ project(':aeron-driver') {
 
         repositories {
             maven {
-                url(!isReleaseVersion ? snapshotsRepoUrl : releasesRepoUrl)
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/${System.getenv('GITHUB_REPOSITORY') ?: "marcocullen/aeron-enhanced"}")
                 credentials {
-                    username = ossrhUsername
-                    password = ossrhPassword
+                    username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                    password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
                 }
             }
         }
     }
 
     signing {
-        if (signingKey != null) {
-            useInMemoryPgpKeys(signingKey, signingPassword)
-        }
-        sign publishing.publications.aeronDriver
+        required = false
     }
 
     tasks.register('validateConfigExpectations', JavaExec) {
@@ -620,6 +626,10 @@ project(':aeron-archive') {
 
     configurations{
         codecGeneration
+    }
+
+    signing {
+        required = false
     }
 
     dependencies {
@@ -766,20 +776,18 @@ project(':aeron-archive') {
 
         repositories {
             maven {
-                url(!isReleaseVersion ? snapshotsRepoUrl : releasesRepoUrl)
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/${System.getenv('GITHUB_REPOSITORY') ?: "marcocullen/aeron-enhanced"}")
                 credentials {
-                    username = ossrhUsername
-                    password = ossrhPassword
+                    username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                    password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
                 }
             }
         }
     }
 
     signing {
-        if (signingKey != null) {
-            useInMemoryPgpKeys(signingKey, signingPassword)
-        }
-        sign publishing.publications.aeronArchive
+        required = false
     }
 
     tasks.register('generateConfigDoc', JavaExec) {
@@ -897,20 +905,18 @@ project(':aeron-cluster') {
 
         repositories {
             maven {
-                url(!isReleaseVersion ? snapshotsRepoUrl : releasesRepoUrl)
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/${System.getenv('GITHUB_REPOSITORY') ?: "marcocullen/aeron-enhanced"}")
                 credentials {
-                    username = ossrhUsername
-                    password = ossrhPassword
+                    username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                    password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
                 }
             }
         }
     }
 
     signing {
-        if (signingKey != null) {
-            useInMemoryPgpKeys(signingKey, signingPassword)
-        }
-        sign publishing.publications.aeronCluster
+        required = false
     }
 
     tasks.register('generateConfigDoc', JavaExec) {
@@ -1021,10 +1027,7 @@ project(':aeron-agent') {
     }
 
     signing {
-        if (signingKey != null) {
-            useInMemoryPgpKeys(signingKey, signingPassword)
-        }
-        sign publishing.publications.aeronAgent
+        required = false
     }
 }
 
@@ -1053,10 +1056,11 @@ project(':aeron-samples') {
 
         repositories {
             maven {
-                url(!isReleaseVersion ? snapshotsRepoUrl : releasesRepoUrl)
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/${System.getenv('GITHUB_REPOSITORY') ?: "marcocullen/aeron-enhanced"}")
                 credentials {
-                    username = ossrhUsername
-                    password = ossrhPassword
+                    username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                    password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
                 }
             }
         }
@@ -1071,10 +1075,7 @@ project(':aeron-samples') {
     }
 
     signing {
-        if (signingKey != null) {
-            useInMemoryPgpKeys(signingKey, signingPassword)
-        }
-        sign publishing.publications.aeronSamples
+        required = false
     }
 
     tasks.named('test').configure {
@@ -1198,6 +1199,7 @@ project(':aeron-test-support') {
 }
 
 project(':aeron-all') {
+
     apply plugin: 'maven-publish'
     apply plugin: 'signing'
     apply plugin: 'com.gradleup.shadow'
@@ -1207,6 +1209,10 @@ project(':aeron-all') {
     def aeronArchiveProject = project(':aeron-archive')
     def aeronClusterProject = project(':aeron-cluster')
     def aeronSamplesProject = project(':aeron-samples')
+
+    signing {
+        required = false
+    }
 
     dependencies {
         implementation aeronClusterProject
@@ -1276,21 +1282,16 @@ project(':aeron-all') {
         }
         repositories {
             maven {
-                url(!isReleaseVersion ? snapshotsRepoUrl : releasesRepoUrl)
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/${System.getenv('GITHUB_REPOSITORY') ?: "marcocullen/aeron-enhanced"}")
                 credentials {
-                    username = ossrhUsername
-                    password = ossrhPassword
+                    username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                    password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
                 }
             }
         }
     }
 
-    signing {
-        if (signingKey != null) {
-            useInMemoryPgpKeys(signingKey, signingPassword)
-        }
-        sign publishing.publications.aeronAll
-    }
 }
 
 tasks.register('testReport', TestReport) {
