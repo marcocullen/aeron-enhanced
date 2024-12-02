@@ -1181,6 +1181,7 @@ public final class AeronArchive implements AutoCloseable
      * Stop all replay sessions for a given recording id that are not in the current position segment.
      *
      * @param recordingId to stop replay for or {@link Aeron#NULL_VALUE} for all replays.
+     * @param stopPosition stop replays beyond this point on the recording.
      */
     public long stopSlowReplays(final long recordingId, final long stopPosition)
     {

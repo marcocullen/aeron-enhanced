@@ -19,7 +19,9 @@ import io.aeron.*;
 import io.aeron.archive.client.AeronArchive;
 import io.aeron.archive.client.ArchiveEvent;
 import io.aeron.archive.client.ArchiveException;
-import io.aeron.archive.codecs.*;
+import io.aeron.archive.codecs.RecordingDescriptorDecoder;
+import io.aeron.archive.codecs.RecordingSignal;
+import io.aeron.archive.codecs.SourceLocation;
 import io.aeron.archive.status.RecordingPos;
 import io.aeron.driver.DutyCycleTracker;
 import io.aeron.exceptions.AeronException;
@@ -42,7 +44,10 @@ import java.nio.channels.FileChannel;
 import java.nio.file.StandardOpenOption;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.EnumSet;
+import java.util.Iterator;
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
@@ -622,8 +627,7 @@ abstract class ArchiveConductor
         }
     }
 
-
-        @SuppressWarnings("MethodLength")
+    @SuppressWarnings("MethodLength")
     void startReplay(
         final long correlationId,
         final long recordingId,
@@ -2474,16 +2478,13 @@ abstract class ArchiveConductor
         return 0;
     }
 
-    public void stopSlowReplays(
+    void stopSlowReplays(
             final long correlationId,
             final long recordingId,
             final long stopPosition,
             final ControlSession controlSession)
     {
         System.out.println("Stop slow replays called on conductor...");
-
-        // Remove the check for active listing
-        // Remove the error response for active slow replay stop
 
         final StopSlowReplaysSession session = new StopSlowReplaysSession(
                 correlationId,
@@ -2494,9 +2495,7 @@ abstract class ArchiveConductor
         );
 
         addSession(session);
-        // Do not set controlSession.activeListing(session);
     }
-
 
     abstract static class Recorder extends SessionWorker<RecordingSession>
     {

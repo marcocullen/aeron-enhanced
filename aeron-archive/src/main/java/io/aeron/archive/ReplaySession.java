@@ -74,11 +74,6 @@ class ReplaySession implements Session, AutoCloseable
     private final long sessionId;
     private final long recordingId;
     private final long startPosition;
-
-    public long getReplayPosition() {
-        return replayPosition;
-    }
-
     private long replayPosition;
     private long stopPosition;
     private long replayLimit;
@@ -91,10 +86,11 @@ class ReplaySession implements Session, AutoCloseable
 
     private final long replayBufferAddress;
     private final Checksum checksum;
-
     private final ExclusivePublication publication;
+
     private final ControlSession controlSession;
     private final CachedEpochClock epochClock;
+
 
     private final NanoClock nanoClock;
     final ArchiveConductor.Replayer replayer;
@@ -168,6 +164,10 @@ class ReplaySession implements Session, AutoCloseable
         final CountedErrorHandler errorHandler = controlSession.archiveConductor().context().countedErrorHandler();
         CloseHelper.close(errorHandler, publication);
         CloseHelper.close(errorHandler, fileChannel);
+    }
+
+    public long replayPosition() {
+        return replayPosition;
     }
 
     /**
